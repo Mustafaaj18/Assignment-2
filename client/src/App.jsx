@@ -317,10 +317,42 @@ function Contact() {
   const navigate = useNavigate();
 
   // Handle the contact form and return the user to the Home page.
-  function handleSubmit(event) {
-    event.preventDefault();
+async function handleSubmit(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+
+  const contact = {
+    firstname: formData.get("firstName"),
+    lastname: formData.get("lastName"),
+    email: formData.get("email"),
+  };
+
+  try {
+    const response = await fetch(
+      "https://assignment-2-7z87.onrender.com/api/contacts",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(contact),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Could not send your message.");
+    }
+
+    alert("Your contact information was submitted successfully!");
+    form.reset();
     navigate("/");
+  } catch (error) {
+    console.error(error);
+    alert("Could not send your message. Please try again.");
   }
+}
 
   return (
     <section className="page-section narrow">
