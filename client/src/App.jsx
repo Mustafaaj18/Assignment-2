@@ -46,6 +46,7 @@ const projects = [
 
 function Layout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [user, setUser] = useState(() =>
     JSON.parse(localStorage.getItem("user") || "null")
@@ -54,6 +55,14 @@ function Layout({ children }) {
   useEffect(() => {
     setUser(JSON.parse(localStorage.getItem("user") || "null"));
   }, [location.pathname]);
+
+  function handleSignOut() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+
+    setUser(null);
+    navigate("/signin");
+  }
 
   return (
     <div className="site">
@@ -81,6 +90,13 @@ function Layout({ children }) {
             </NavLink>
           ))}
 
+          {!user && (
+            <>
+              <NavLink to="/signin">Sign In</NavLink>
+              <NavLink to="/signup">Sign Up</NavLink>
+            </>
+          )}
+
           {user?.role === "admin" && (
             <NavLink
               to="/admin"
@@ -90,11 +106,14 @@ function Layout({ children }) {
             </NavLink>
           )}
 
-          {!user && (
-            <>
-              <NavLink to="/signin">Sign In</NavLink>
-              <NavLink to="/signup">Sign Up</NavLink>
-            </>
+          {user && (
+            <button
+              type="button"
+              className="button secondary"
+              onClick={handleSignOut}
+            >
+              Sign Out
+            </button>
           )}
         </nav>
       </header>
