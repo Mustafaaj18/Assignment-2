@@ -1,4 +1,17 @@
-import { NavLink, Routes, Route, Link, useNavigate } from "react-router-dom";
+import SignUp from "./SignUp";
+import SignIn from "./SignIn";
+import AdminDashboard from "./AdminDashboard";
+import { useEffect, useState } from "react";
+
+import {
+  NavLink,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  Navigate,
+  useLocation
+} from "react-router-dom";
 
 // Portfolio projects
 const projects = [
@@ -32,6 +45,16 @@ const projects = [
 ];
 
 function Layout({ children }) {
+  const location = useLocation();
+
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem("user") || "null")
+  );
+
+  useEffect(() => {
+    setUser(JSON.parse(localStorage.getItem("user") || "null"));
+  }, [location.pathname]);
+
   return (
     <div className="site">
       <header className="navbar">
@@ -40,7 +63,6 @@ function Layout({ children }) {
           <span>AJ Morgan</span>
         </Link>
 
-        {/* Main navigation menu */}
         <nav className="nav-links" aria-label="Main navigation">
           {[
             ["Home", "/"],
@@ -58,6 +80,22 @@ function Layout({ children }) {
               {label}
             </NavLink>
           ))}
+
+          {user?.role === "admin" && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              Admin Dashboard
+            </NavLink>
+          )}
+
+          {!user && (
+            <>
+              <NavLink to="/signin">Sign In</NavLink>
+              <NavLink to="/signup">Sign Up</NavLink>
+            </>
+          )}
         </nav>
       </header>
 
@@ -76,9 +114,7 @@ function Home() {
     <section className="hero page-section">
       <div className="hero-copy">
         <p className="eyebrow">SOFTWARE ENGINEERING TECHNICIAN</p>
-
         <h1>Building simple ideas into useful digital experiences.</h1>
-
         <p className="lead">
           Welcome to my portfolio. I’m AJ Morgan, a student developer interested
           in web development, programming, and creative technology.
@@ -88,7 +124,6 @@ function Home() {
           <Link className="button primary" to="/about">
             About Me
           </Link>
-
           <Link className="button secondary" to="/projects">
             View Projects
           </Link>
@@ -97,9 +132,7 @@ function Home() {
 
       <div className="hero-card">
         <div className="avatar large">AJ</div>
-
         <h2>My Mission</h2>
-
         <p>
           My mission is to keep learning, build practical software, and create
           clean experiences that solve real problems.
@@ -125,13 +158,11 @@ function About() {
 
         <div>
           <h2>AJ Morgan</h2>
-
           <p>
             I am a Software Engineering Technician student at Centennial
             College. I enjoy learning how software works and building projects
             that combine programming, design, and problem solving.
           </p>
-
           <p>
             My current interests include front-end development, Python,
             JavaScript, React, and interactive digital projects. I am focused on
@@ -144,17 +175,14 @@ function About() {
               <strong>Location</strong>
               <span>Toronto, Ontario</span>
             </div>
-
             <div>
               <strong>Program</strong>
               <span>Software Engineering Technician</span>
             </div>
-
             <div>
               <strong>Graduation</strong>
               <span>2027</span>
             </div>
-
             <div>
               <strong>Email</strong>
               <span>aj@gmail.com</span>
@@ -176,6 +204,31 @@ function About() {
 }
 
 function Projects() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const response = await fetch("http://localhost:3000/api/projects");
+
+        if (!response.ok) {
+          throw new Error("Could not load projects.");
+        }
+
+        const data = await response.json();
+        setProjects(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProjects();
+  }, []);
+
   return (
     <section className="page-section">
       <SectionTitle
@@ -183,37 +236,68 @@ function Projects() {
         title="Projects I have worked on."
       />
 
-      <div className="project-grid">
-        {projects.map((project) => (
-          <article className="card project-card" key={project.title}>
+      {loading && <p>Loading projects...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-            {/* Project image */}
-            <div className="project-image">
-              <img
-                src={project.image}
-                alt={project.title}
-              />
-            </div>
+      {!loading && !error && (
+        <div className="project-grid">
+          {projects.map((project) => (
+            <article className="card project-card" key={project._id}>
+              <span className="tag">Web Development</span>
+              <h2>{project.title}</h2>
+              <p>{project.description}</p>
+              <p>
+                <strong>Name:</strong> {project.firstname} {project.lastname}
+              </p>
+              <p>
+                <strong>Email:</strong> {project.email}
+              </p>
+              <p>
+                <strong>Completion Date:</strong>{" "}
+                {project.completionDate
+                  ? new Date(project.completionDate).toLocaleDateString()
+                  : "Not specified"}
+              </p>
+            </article>
+          ))}
+        </div>
+      )}
 
-            <span className="tag">{project.category}</span>
-
-            <h2>{project.title}</h2>
-
-            <p>{project.description}</p>
-
-            <h3>My Role</h3>
-            <p>{project.role}</p>
-
-            <h3>Outcome</h3>
-            <p>{project.outcome}</p>
-          </article>
-        ))}
-      </div>
+      {!loading && !error && projects.length === 0 && (
+        <p>No projects available yet.</p>
+      )}
     </section>
   );
 }
 
 function Education() {
+  const [qualifications, setQualifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchQualifications() {
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/qualifications"
+        );
+
+        if (!response.ok) {
+          throw new Error("Could not load qualifications.");
+        }
+
+        const data = await response.json();
+        setQualifications(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchQualifications();
+  }, []);
+
   return (
     <section className="page-section narrow">
       <SectionTitle
@@ -221,90 +305,60 @@ function Education() {
         title="Education & qualifications."
       />
 
-      <div className="timeline">
-        <article className="timeline-item">
-          <div className="timeline-dot" />
+      {loading && <p>Loading qualifications...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-          <span className="date">2025 — 2027</span>
+      {!loading && !error && qualifications.length > 0 && (
+        <div className="timeline">
+          {qualifications.map((qualification) => (
+            <article className="timeline-item" key={qualification._id}>
+              <div className="timeline-dot" />
+              <span className="date">
+                {qualification.completionDate
+                  ? new Date(
+                      qualification.completionDate
+                    ).toLocaleDateString()
+                  : "Date not specified"}
+              </span>
+              <h2>{qualification.title}</h2>
+              <h3>
+                {qualification.firstname} {qualification.lastname}
+              </h3>
+              <p>{qualification.description}</p>
+              <p>
+                <strong>Email:</strong> {qualification.email}
+              </p>
+            </article>
+          ))}
+        </div>
+      )}
 
-          <h2>Software Engineering Technician</h2>
-
-          <h3>Centennial College</h3>
-
-          <p>
-            Diploma program focused on software development, programming,
-            databases, web technologies, and practical application development.
-          </p>
-        </article>
-
-        <article className="timeline-item">
-          <div className="timeline-dot" />
-
-          <span className="date">Current Skills Development</span>
-
-          <h2>Programming & Web Development</h2>
-
-          <h3>Practical Learning</h3>
-
-          <p>
-            Building projects with Python, C, JavaScript, HTML/CSS, SQL, Linux,
-            GitHub, and Jira while developing problem-solving and teamwork
-            skills.
-          </p>
-        </article>
-      </div>
+      {!loading && !error && qualifications.length === 0 && (
+        <p>No education or qualifications available yet.</p>
+      )}
     </section>
   );
 }
 
 function Services() {
   const services = [
-    [
-      "01",
-      "Web Development",
-      "Responsive websites using HTML, CSS, JavaScript, and React."
-    ],
-    [
-      "02",
-      "Front-End Development",
-      "Clean interfaces with reusable components and user-friendly layouts."
-    ],
-    [
-      "03",
-      "Python Programming",
-      "Basic scripting, application logic, and automation concepts."
-    ],
-    [
-      "04",
-      "Database Development",
-      "Basic SQL and structured data concepts for application projects."
-    ],
-    [
-      "05",
-      "UI Design",
-      "Simple, modern layouts focused on readability and usability."
-    ],
-    [
-      "06",
-      "Project Support",
-      "GitHub-based project organization and collaborative development."
-    ]
+    ["01", "Web Development", "Responsive websites using HTML, CSS, JavaScript, and React."],
+    ["02", "Front-End Development", "Clean interfaces with reusable components and user-friendly layouts."],
+    ["03", "Python Programming", "Basic scripting, application logic, and automation concepts."],
+    ["04", "Database Development", "Basic SQL and structured data concepts for application projects."],
+    ["05", "UI Design", "Simple, modern layouts focused on readability and usability."],
+    ["06", "Project Support", "GitHub-based project organization and collaborative development."]
   ];
 
   return (
     <section className="page-section">
-      <SectionTitle
-        eyebrow="SERVICES"
-        title="What I can help with."
-      />
+      <SectionTitle eyebrow="SERVICES" title="What I can help with." />
 
       <div className="service-grid">
         {services.map(([number, title, text]) => (
           <article className="card service-card" key={number}>
             <span className="service-number">{number}</span>
-
             <h2>{title}</h2>
-
             <p>{text}</p>
           </article>
         ))}
@@ -316,70 +370,62 @@ function Services() {
 function Contact() {
   const navigate = useNavigate();
 
-  // Handle the contact form and return the user to the Home page.
-async function handleSubmit(event) {
-  event.preventDefault();
+  async function handleSubmit(event) {
+    event.preventDefault();
 
-  const form = event.currentTarget;
-  const formData = new FormData(form);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
 
-  const contact = {
-    firstname: formData.get("firstName"),
-    lastname: formData.get("lastName"),
-    email: formData.get("email"),
-  };
+    const contact = {
+      firstname: formData.get("firstName"),
+      lastname: formData.get("lastName"),
+      email: formData.get("email")
+    };
 
-  try {
-    const response = await fetch(
-      "https://assignment-2-7z87.onrender.com/api/contacts",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(contact),
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/contacts",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(contact)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Could not send your message.");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Could not send your message.");
+      alert("Your contact information was submitted successfully!");
+      form.reset();
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+      alert("Could not send your message. Please try again.");
     }
-
-    alert("Your contact information was submitted successfully!");
-    form.reset();
-    navigate("/");
-  } catch (error) {
-    console.error(error);
-    alert("Could not send your message. Please try again.");
   }
-}
 
   return (
     <section className="page-section narrow">
-      <SectionTitle
-        eyebrow="CONTACT ME"
-        title="Let’s connect."
-      />
+      <SectionTitle eyebrow="CONTACT ME" title="Let’s connect." />
 
       <div className="contact-grid">
         <div className="contact-panel">
           <h2>Contact Information</h2>
-
           <p>
             If you would like to discuss a project or opportunity, send me a
             message.
           </p>
-
           <div className="contact-detail">
             <strong>Email</strong>
             <span>aj@gmail.com</span>
           </div>
-
           <div className="contact-detail">
             <strong>Phone</strong>
             <span>902-0000000</span>
           </div>
-
           <div className="contact-detail">
             <strong>Location</strong>
             <span>Toronto, Ontario</span>
@@ -392,7 +438,6 @@ async function handleSubmit(event) {
               First Name
               <input name="firstName" required />
             </label>
-
             <label>
               Last Name
               <input name="lastName" required />
@@ -401,29 +446,15 @@ async function handleSubmit(event) {
 
           <label>
             Contact Number
-            <input
-              name="contactNumber"
-              type="tel"
-              required
-            />
+            <input name="contactNumber" type="tel" required />
           </label>
-
           <label>
             Email Address
-            <input
-              name="email"
-              type="email"
-              required
-            />
+            <input name="email" type="email" required />
           </label>
-
           <label>
             Message
-            <textarea
-              name="message"
-              rows="6"
-              required
-            />
+            <textarea name="message" rows="6" required />
           </label>
 
           <button className="button primary" type="submit">
@@ -445,15 +476,38 @@ function SectionTitle({ eyebrow, title }) {
 }
 
 function App() {
+  const location = useLocation();
+
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem("user") || "null")
+  );
+
+  useEffect(() => {
+    setUser(JSON.parse(localStorage.getItem("user") || "null"));
+  }, [location.pathname]);
+
   return (
     <Layout>
       <Routes>
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signin" element={<SignIn />} />
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/education" element={<Education />} />
         <Route path="/services" element={<Services />} />
         <Route path="/contact" element={<Contact />} />
+
+        <Route
+          path="/admin"
+          element={
+            user?.role === "admin" ? (
+              <AdminDashboard />
+            ) : (
+              <Navigate to="/signin" replace />
+            )
+          }
+        />
       </Routes>
     </Layout>
   );
