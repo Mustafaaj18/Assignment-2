@@ -13,13 +13,26 @@ import qualificationRoutes from "./routes/qualification.routes.js";
 
 const app = express();
 
-// Allow the React frontend to communicate with the backend
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://assignment-2-xi-lake.vercel.app",
+];
 
-app.use(helmet());
+// Allow local development and the deployed Vercel website
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -41,7 +54,7 @@ app.use("/", qualificationRoutes);
 app.use((err, req, res, next) => {
   if (err.name === "UnauthorizedError") {
     return res.status(401).json({
-      error: err.name + ": " + err.message
+      error: err.name + ": " + err.message,
     });
   }
 
@@ -49,7 +62,7 @@ app.use((err, req, res, next) => {
     console.log(err);
 
     return res.status(400).json({
-      error: err.name + ": " + err.message
+      error: err.name + ": " + err.message,
     });
   }
 
