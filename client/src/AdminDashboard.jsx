@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "https://assignment-2-7z87.onrender.com";
 
 const emptyForm = {
   title: "",
@@ -24,6 +24,8 @@ function AdminDashboard() {
 
   async function fetchData() {
     try {
+      setError("");
+
       const [projectResponse, qualificationResponse] = await Promise.all([
         fetch(`${API_URL}/api/projects`),
         fetch(`${API_URL}/api/qualifications`)
@@ -87,7 +89,11 @@ function AdminDashboard() {
         throw new Error(data.error || data.message || "Operation failed.");
       }
 
-      alert(editingId ? "Record updated successfully!" : "Record added successfully!");
+      alert(
+        editingId
+          ? "Record updated successfully!"
+          : "Record added successfully!"
+      );
 
       resetForm();
       await fetchData();
@@ -250,7 +256,11 @@ function AdminDashboard() {
           {error && <p style={{ color: "red" }}>{error}</p>}
 
           <div className="button-row">
-            <button className="button primary" type="submit" disabled={loading}>
+            <button
+              className="button primary"
+              type="submit"
+              disabled={loading}
+            >
               {loading
                 ? "Saving..."
                 : editingId
@@ -278,7 +288,11 @@ function AdminDashboard() {
 
         <div className="project-grid">
           {items.map((item) => (
-            <article className="card" key={item._id} style={{ padding: "20px" }}>
+            <article
+              className="card"
+              key={item._id}
+              style={{ padding: "20px" }}
+            >
               <h3>{item.title}</h3>
               <p>{item.description}</p>
               <p>

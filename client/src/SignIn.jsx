@@ -27,14 +27,17 @@ function SignIn() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/auth/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(formData)
-      });
+      const response = await fetch(
+        "https://assignment-2-7z87.onrender.com/auth/signin",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify(formData)
+        }
+      );
 
       const data = await response.json();
 

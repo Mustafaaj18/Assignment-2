@@ -230,7 +230,7 @@ function Projects() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const response = await fetch("http://localhost:3000/api/projects");
+        const response = await fetch("https://assignment-2-7z87.onrender.com/api/projects");
 
         if (!response.ok) {
           throw new Error("Could not load projects.");
@@ -298,7 +298,7 @@ function Education() {
     async function fetchQualifications() {
       try {
         const response = await fetch(
-          "http://localhost:3000/api/qualifications"
+          "https://assignment-2-7z87.onrender.com/api/qualifications"
         );
 
         if (!response.ok) {
@@ -403,7 +403,7 @@ function Contact() {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/api/contacts",
+        "https://assignment-2-7z87.onrender.com/api/contacts",
         {
           method: "POST",
           headers: {
