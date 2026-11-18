@@ -18,14 +18,32 @@ const allowedOrigins = [
   "https://assignment-2-xi-lake.vercel.app",
 ];
 
-// Allow local development and the deployed Vercel website
+// CORS configuration
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      console.log("CORS request origin:", origin);
+
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      try {
+        const hostname = new URL(origin).hostname;
+
+        const isAllowed =
+          allowedOrigins.includes(origin) ||
+          (hostname.startsWith("assignment-2-") &&
+            hostname.endsWith(".vercel.app"));
+
+        if (isAllowed) {
+          return callback(null, true);
+        }
+
+        console.log("Blocked CORS origin:", origin);
+        return callback(new Error("Not allowed by CORS"));
+      } catch (error) {
+        return callback(new Error("Invalid CORS origin"));
       }
     },
     credentials: true,
